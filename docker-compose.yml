@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: maferefun
+      POSTGRES_PASSWORD: maferefun
+      POSTGRES_DB: maferefun
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maferefun"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://maferefun:maferefun@db:5432/maferefun
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-dokploy}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
