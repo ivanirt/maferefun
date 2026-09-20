@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   try {
-    const [products, packages, news, blogs, featured] = await Promise.all([
+    const [products, packages, news, blogs] = await Promise.all([
       prisma.product.findMany({
         where: { enabled: true },
         orderBy: { name: "asc" },
@@ -27,8 +27,13 @@ export default async function HomePage() {
         orderBy: { createdAt: "desc" },
         take: 8,
       }),
-      featuredProducts(),
     ]);
+    let featured = { title: "Destacados", products: [] as ReturnType<typeof toCatalogProduct>[] };
+    try {
+      featured = await featuredProducts();
+    } catch (error) {
+      console.error("featuredProducts", error);
+    }
     return (
       <CatalogHome
         products={products.map(toCatalogProduct)}

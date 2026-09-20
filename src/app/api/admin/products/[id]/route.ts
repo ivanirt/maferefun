@@ -38,6 +38,8 @@ export async function PATCH(request: Request, { params }: Params) {
       stock: body.stock !== undefined ? Number(body.stock) : undefined,
       minStock: body.minStock !== undefined ? Number(body.minStock) : undefined,
       enabled: body.enabled !== undefined ? Boolean(body.enabled) : undefined,
+      inCarousel: body.inCarousel !== undefined ? Boolean(body.inCarousel) : undefined,
+      detail: body.detail !== undefined ? String(body.detail) : undefined,
       imagePath: images?.[0],
       ...(images
         ? {

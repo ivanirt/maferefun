@@ -18,6 +18,8 @@ model Product {
   stock       Int            @default(0)
   minStock    Int            @default(1)
   enabled     Boolean        @default(true)
+  inCarousel  Boolean        @default(false)
+  detail      String         @default("")
   imagePath   String
   createdAt   DateTime       @default(now())
   images      ProductImage[]

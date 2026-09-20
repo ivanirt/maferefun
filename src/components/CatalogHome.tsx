@@ -6,7 +6,7 @@ import { addToCart } from "@/lib/cart";
 import { formatMxn } from "@/lib/shipping";
 import { ProductCarousel } from "@/components/ProductCarousel";
 import { PostCarousel } from "@/components/PostCarousel";
-import { ProductPhotos } from "@/components/ProductPhotos";
+import { ProductCard } from "@/components/ProductCard";
 import { SalePrice } from "@/components/SalePrice";
 
 export type CatalogProduct = {
@@ -88,7 +88,7 @@ export function CatalogHome({
     <div>
       <section className="relative h-[260px] overflow-hidden border-b border-[#EADBCE] sm:h-[300px]">
         <Image
-          src="/banner/banner-ifa-soperas-v7.png"
+          src="/banner/banner-ifa-soperas-v8.png"
           alt=""
           fill
           priority
@@ -196,40 +196,7 @@ export function CatalogHome({
             </article>
           ))}
           {filteredProducts.map((product) => (
-            <article key={product.id} className="border border-[#EADBCE] bg-white">
-              <ProductPhotos
-                paths={product.images.length ? product.images : [product.imagePath]}
-                alt={product.name}
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
-              <div className="space-y-2 p-4">
-                <p className="text-xs uppercase tracking-wider text-[#6D5E52]">{product.orisha}</p>
-                <h2 className="font-serif text-xl text-[#241B16]">{product.name}</h2>
-                <p className="text-sm text-[#6D5E52]">{product.description}</p>
-                <SalePrice priceMxn={product.priceMxn} compareAtMxn={product.compareAtMxn} />
-                <button
-                  type="button"
-                  disabled={product.stock < 1}
-                  className="w-full bg-[#241B16] py-2.5 text-xs uppercase tracking-wider text-[#FAF7F2] disabled:opacity-40"
-                  onClick={() => {
-                    addToCart({
-                      key: `product:${product.id}`,
-                      kind: "product",
-                      productId: product.id,
-                      slug: product.slug,
-                      name: product.name,
-                      priceMxn: product.priceMxn,
-                      compareAtMxn: product.compareAtMxn,
-                      imagePath: product.imagePath,
-                    });
-                    setAdded(product.id);
-                    setTimeout(() => setAdded(null), 1500);
-                  }}
-                >
-                  {product.stock < 1 ? "Sin inventario" : added === product.id ? "Añadido" : "Añadir al carrito"}
-                </button>
-              </div>
-            </article>
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </section>

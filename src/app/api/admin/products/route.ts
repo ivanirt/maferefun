@@ -40,6 +40,8 @@ export async function POST(request: Request) {
       stock: Number(body.stock) || 0,
       minStock: Number(body.minStock) || 1,
       enabled: body.enabled !== false,
+      inCarousel: Boolean(body.inCarousel),
+      detail: String(body.detail || "").trim(),
       imagePath,
       images: {
         create: images.map((path, sort) => ({ path, sort })),

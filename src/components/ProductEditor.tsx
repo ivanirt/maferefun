@@ -10,10 +10,12 @@ export type ProductEditorData = {
   category: string;
   orisha: string;
   description: string;
+  detail: string;
   priceMxn: number;
   stock: number;
   minStock: number;
   enabled: boolean;
+  inCarousel: boolean;
   images: string[];
   offers: { id: string; priceMxn: number; startsAt: string; endsAt: string }[];
   hasTransactions: boolean;
@@ -25,10 +27,12 @@ export function ProductEditor({ product }: { product?: ProductEditorData }) {
   const [category, setCategory] = useState(product?.category || "Collar");
   const [orisha, setOrisha] = useState(product?.orisha || "");
   const [description, setDescription] = useState(product?.description || "");
+  const [detail, setDetail] = useState(product?.detail || "");
   const [priceMxn, setPriceMxn] = useState(product?.priceMxn ?? 13);
   const [stock, setStock] = useState(product?.stock ?? 0);
   const [minStock, setMinStock] = useState(product?.minStock ?? 1);
   const [enabled, setEnabled] = useState(product?.enabled ?? true);
+  const [inCarousel, setInCarousel] = useState(product?.inCarousel ?? false);
   const [images, setImages] = useState<string[]>(product?.images || []);
   const [offers, setOffers] = useState(product?.offers || []);
   const [offerPrice, setOfferPrice] = useState(0);
@@ -94,7 +98,7 @@ export function ProductEditor({ product }: { product?: ProductEditorData }) {
     setBusy(true);
     setMessage(null);
     try {
-      const payload = { name, category, orisha, description, priceMxn, stock, minStock, enabled, images };
+      const payload = { name, category, orisha, description, detail, priceMxn, stock, minStock, enabled, inCarousel, images };
       const res = await fetch(product ? `/api/admin/products/${product.id}` : "/api/admin/products", {
         method: product ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -190,7 +194,15 @@ export function ProductEditor({ product }: { product?: ProductEditorData }) {
         </label>
         <label className="block text-sm">
           Descripción
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full border border-[#EADBCE] px-3 py-2" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full border border-[#EADBCE] px-3 py-2" rows={3} />
+        </label>
+        <label className="block text-sm">
+          Descripción larga (detalle)
+          <textarea value={detail} onChange={(e) => setDetail(e.target.value)} className="mt-1 w-full border border-[#EADBCE] px-3 py-2" rows={8} />
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={inCarousel} onChange={(e) => setInCarousel(e.target.checked)} />
+          Mostrar en el carrusel
         </label>
         <label className="block text-sm">
           Precio unitario (MXN)

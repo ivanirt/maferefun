@@ -25,10 +25,12 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
         category: product.category,
         orisha: product.orisha,
         description: product.description,
+        detail: product.detail,
         priceMxn: product.priceMxn,
         stock: product.stock,
         minStock: product.minStock,
         enabled: product.enabled,
+        inCarousel: product.inCarousel,
         images: product.images.length ? product.images.map((image) => image.path) : [product.imagePath].filter(Boolean),
         offers: product.offers.map((offer) => ({
           id: offer.id,

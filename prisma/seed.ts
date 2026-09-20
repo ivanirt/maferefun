@@ -7,6 +7,11 @@ const COLLAR =
   "Ileke de cuentas, hecho con oficio. Si lo pides, lo consagramos antes de enviarlo.";
 const MAZO =
   "Collar mazo de mayor volumen, para quien ya camina con su santo. Consagración opcional al pedir.";
+const COLLAR_DETAIL =
+  "Ileke de cuentas, hecho con oficio. Cada hilo se trabaja para que el collar siente bien y dure el uso diario.\n\nSi lo pides, lo consagramos antes de enviarlo. No es adorno suelto: va con su camino y se cuida. Si se rompe, no lo tires: escríbenos para recomponerlo.";
+const MAZO_DETAIL =
+  "Collar mazo de mayor volumen, para quien ya camina con su santo. El peso y el tamaño no son los del primer ileke.\n\nConsagración opcional al pedir. Si dudas si te corresponde, pide consulta de IFA Registro antes de encargarlo.";
+const IN_CAROUSEL = new Set(["colla-inle", "collar-babalu-aye", "collar-oshun"]);
 
 const products = [
   { slug: "colla-inle", name: "Colla Inle", category: "Collar", orisha: "Inle", description: COLLAR, priceMxn: 13, imagePath: "/products/colla-inle.jpg", stock: 5, minStock: 2 },
@@ -33,8 +38,17 @@ async function main() {
   for (const product of products) {
     const saved = await prisma.product.upsert({
       where: { slug: product.slug },
-      update: product,
-      create: { ...product, enabled: true },
+      update: {
+        ...product,
+        inCarousel: IN_CAROUSEL.has(product.slug),
+        detail: product.category === "Mazo" ? MAZO_DETAIL : COLLAR_DETAIL,
+      },
+      create: {
+        ...product,
+        enabled: true,
+        inCarousel: IN_CAROUSEL.has(product.slug),
+        detail: product.category === "Mazo" ? MAZO_DETAIL : COLLAR_DETAIL,
+      },
     });
     const originalPath = `/products/originals/${product.imagePath.split("/").pop()}`;
     const rows = await prisma.productImage.findMany({

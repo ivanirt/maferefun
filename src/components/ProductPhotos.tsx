@@ -33,7 +33,11 @@ export function ProductPhotos({
             type="button"
             aria-label="Foto anterior"
             className="absolute left-1 top-1/2 z-10 -translate-y-1/2 bg-white/85 px-2 py-1 text-sm"
-            onClick={() => setIndex((i) => (i === 0 ? photos.length - 1 : i - 1))}
+            onClick={(event) => {
+              event.stopPropagation();
+              setIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
+            }}
+            onDoubleClick={(event) => event.stopPropagation()}
           >
             ‹
           </button>
@@ -41,7 +45,11 @@ export function ProductPhotos({
             type="button"
             aria-label="Foto siguiente"
             className="absolute right-1 top-1/2 z-10 -translate-y-1/2 bg-white/85 px-2 py-1 text-sm"
-            onClick={() => setIndex((i) => (i + 1) % photos.length)}
+            onClick={(event) => {
+              event.stopPropagation();
+              setIndex((i) => (i + 1) % photos.length);
+            }}
+            onDoubleClick={(event) => event.stopPropagation()}
           >
             ›
           </button>
@@ -52,7 +60,11 @@ export function ProductPhotos({
                 type="button"
                 aria-label={`Foto ${i + 1}`}
                 className={`h-1.5 w-1.5 rounded-full ${i === index ? "bg-[#241B16]" : "bg-[#241B16]/30"}`}
-                onClick={() => setIndex(i)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIndex(i);
+                }}
+                onDoubleClick={(event) => event.stopPropagation()}
               />
             ))}
           </div>
