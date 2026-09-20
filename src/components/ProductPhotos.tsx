@@ -1,0 +1,59 @@
+"use client";
+
+import Image from "next/image";
+import { useState } from "react";
+
+export function ProductPhotos({
+  paths,
+  alt,
+  sizes,
+}: {
+  paths: string[];
+  alt: string;
+  sizes: string;
+}) {
+  const photos = paths.filter(Boolean);
+  const [index, setIndex] = useState(0);
+  const current = photos[Math.min(index, Math.max(photos.length - 1, 0))];
+
+  if (!current) {
+    return <div className="relative aspect-square bg-[#F3EEE6]" />;
+  }
+
+  return (
+    <div className="relative aspect-square bg-[#F3EEE6]">
+      <Image src={current} alt={alt} fill className="object-cover" sizes={sizes} />
+      {photos.length > 1 ? (
+        <>
+          <button
+            type="button"
+            aria-label="Foto anterior"
+            className="absolute left-1 top-1/2 -translate-y-1/2 bg-white/85 px-2 py-1 text-sm"
+            onClick={() => setIndex((i) => (i === 0 ? photos.length - 1 : i - 1))}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="Foto siguiente"
+            className="absolute right-1 top-1/2 -translate-y-1/2 bg-white/85 px-2 py-1 text-sm"
+            onClick={() => setIndex((i) => (i + 1) % photos.length)}
+          >
+            ›
+          </button>
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+            {photos.map((path, i) => (
+              <button
+                key={`${path}-${i}`}
+                type="button"
+                aria-label={`Foto ${i + 1}`}
+                className={`h-1.5 w-1.5 rounded-full ${i === index ? "bg-[#F7F1E6]" : "bg-white/50"}`}
+                onClick={() => setIndex(i)}
+              />
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}

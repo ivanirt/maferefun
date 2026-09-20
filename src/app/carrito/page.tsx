@@ -4,8 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { MercadoPagoCheckout } from "@/components/MercadoPagoCheckout";
+import { SalePrice } from "@/components/SalePrice";
 import { CartItem, clearCart, readCart, setQuantity } from "@/lib/cart";
 import { CONSECRATION_FEE, FREE_SHIPPING_THRESHOLD, SHIPPING_FEE, formatMxn, getShippingCost } from "@/lib/shipping";
+import type { SavedAddress, SavedPayment } from "@/components/WalletManager";
 
 export default function CarritoPage() {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -20,11 +22,40 @@ export default function CarritoPage() {
   const [step, setStep] = useState<"form" | "pay" | "done">("form");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [payments, setPayments] = useState<SavedPayment[]>([]);
+  const [addressId, setAddressId] = useState("");
+  const [paymentId, setPaymentId] = useState("");
+  const [useNewAddress, setUseNewAddress] = useState(false);
+  const [useNewPayment, setUseNewPayment] = useState(false);
 
   useEffect(() => {
     const sync = () => setItems(readCart());
     sync();
     window.addEventListener("maferefun-cart", sync);
+    fetch("/api/account")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data?.user) return;
+        setSignedIn(true);
+        setName(data.user.name || "");
+        setEmail(data.user.email || "");
+        setWhatsapp(data.user.whatsapp || "");
+        setAddresses(data.addresses || []);
+        setPayments(data.paymentMethods || []);
+        const defaultAddress = (data.addresses || []).find((item: SavedAddress) => item.isDefault) || data.addresses?.[0];
+        const defaultPay = (data.paymentMethods || []).find((item: SavedPayment) => item.isDefault) || data.paymentMethods?.[0];
+        if (defaultAddress) {
+          setAddressId(defaultAddress.id);
+          setUseNewAddress(false);
+        }
+        if (defaultPay) {
+          setPaymentId(defaultPay.id);
+          setUseNewPayment(false);
+        }
+      })
+      .catch(() => undefined);
     return () => window.removeEventListener("maferefun-cart", sync);
   }, []);
 
@@ -48,7 +79,14 @@ export default function CarritoPage() {
           address,
           notes,
           consecrate,
-          items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+          addressId: signedIn && !useNewAddress ? addressId : undefined,
+          paymentMethodId: signedIn && !useNewPayment ? paymentId : undefined,
+          items: items.map((item) => ({
+            kind: item.kind,
+            productId: item.productId,
+            packageId: item.packageId,
+            quantity: item.quantity,
+          })),
         }),
       });
       const data = await res.json();
@@ -56,28 +94,38 @@ export default function CarritoPage() {
         setMessage(data.error || "No se pudo confirmar el pedido.");
         return;
       }
-      setOrderCode(data.code);
+      const code = data.code as string;
+      setOrderCode(code);
       setPaidTotal(data.total ?? total);
+      if (signedIn && !useNewPayment && paymentId) {
+        await confirmPay(code, `MP-SAVED-${paymentId.slice(-6).toUpperCase()}`);
+        return;
+      }
       setStep("pay");
     } finally {
       setBusy(false);
     }
   }
 
-  async function onPaid(paymentId: string) {
-    if (!orderCode) return;
+  async function confirmPay(code: string, paymentRef: string) {
     const res = await fetch("/api/orders", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: orderCode, paymentId }),
+      body: JSON.stringify({ code, paymentId: paymentRef }),
     });
     const data = await res.json();
     if (!res.ok) {
       setMessage(data.error || "El pago no se pudo registrar.");
       return;
     }
+    setOrderCode(code);
     clearCart();
     setStep("done");
+  }
+
+  async function onPaid(paymentRef: string) {
+    if (!orderCode) return;
+    await confirmPay(orderCode, paymentRef);
   }
 
   if (step === "done" && orderCode) {
@@ -129,18 +177,19 @@ export default function CarritoPage() {
         ) : (
           <ul className="mt-6 space-y-4">
             {items.map((item) => (
-              <li key={item.productId} className="flex gap-4 border border-[#EADBCE] bg-white p-3">
+              <li key={item.key} className="flex gap-4 border border-[#EADBCE] bg-white p-3">
                 <div className="relative h-20 w-20 shrink-0 bg-[#F3EEE6]">
-                  <Image src={item.imagePath} alt="" fill className="object-cover" />
+                  {item.imagePath ? <Image src={item.imagePath} alt="" fill className="object-cover" /> : null}
                 </div>
                 <div className="flex-1">
                   <p className="font-serif text-lg">{item.name}</p>
-                  <p className="text-sm text-[#6D5E52]">{formatMxn(item.priceMxn)}</p>
+                  {item.kind === "package" ? <p className="text-xs text-[#6D5E52]">Paquete</p> : null}
+                  <SalePrice priceMxn={item.priceMxn} compareAtMxn={item.compareAtMxn} />
                   <input
                     type="number"
                     min={0}
                     value={item.quantity}
-                    onChange={(e) => setQuantity(item.productId, Number(e.target.value))}
+                    onChange={(e) => setQuantity(item.key, Number(e.target.value))}
                     className="mt-2 w-16 border border-[#EADBCE] px-2 py-1 text-sm"
                   />
                 </div>
@@ -168,10 +217,64 @@ export default function CarritoPage() {
           WhatsApp
           <input required value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className="mt-1 w-full border border-[#EADBCE] px-3 py-2" />
         </label>
-        <label className="block text-sm">
-          Dirección
-          <textarea required value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1 w-full border border-[#EADBCE] px-3 py-2" />
-        </label>
+        {signedIn && addresses.length > 0 ? (
+          <fieldset className="space-y-2 text-sm">
+            <legend>Domicilio</legend>
+            {addresses.map((item) => (
+              <label key={item.id} className="flex items-start gap-2">
+                <input
+                  type="radio"
+                  name="address"
+                  checked={!useNewAddress && addressId === item.id}
+                  onChange={() => {
+                    setUseNewAddress(false);
+                    setAddressId(item.id);
+                  }}
+                />
+                <span>
+                  {item.label}
+                  {item.isDefault ? " (default)" : ""} · {item.line1}, {item.city}
+                </span>
+              </label>
+            ))}
+            <label className="flex items-center gap-2">
+              <input type="radio" name="address" checked={useNewAddress} onChange={() => setUseNewAddress(true)} />
+              Otro domicilio
+            </label>
+          </fieldset>
+        ) : null}
+        {(!signedIn || useNewAddress || addresses.length === 0) ? (
+          <label className="block text-sm">
+            Dirección
+            <textarea required value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1 w-full border border-[#EADBCE] px-3 py-2" />
+          </label>
+        ) : null}
+        {signedIn && payments.length > 0 ? (
+          <fieldset className="space-y-2 text-sm">
+            <legend>Método de pago</legend>
+            {payments.map((item) => (
+              <label key={item.id} className="flex items-start gap-2">
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={!useNewPayment && paymentId === item.id}
+                  onChange={() => {
+                    setUseNewPayment(false);
+                    setPaymentId(item.id);
+                  }}
+                />
+                <span>
+                  {item.label} · {item.brand} ···{item.last4}
+                  {item.isDefault ? " (default)" : ""}
+                </span>
+              </label>
+            ))}
+            <label className="flex items-center gap-2">
+              <input type="radio" name="payment" checked={useNewPayment} onChange={() => setUseNewPayment(true)} />
+              Otra tarjeta (Mercado Pago)
+            </label>
+          </fieldset>
+        ) : null}
         <label className="block text-sm">
           Notas
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1 w-full border border-[#EADBCE] px-3 py-2" />
@@ -184,7 +287,7 @@ export default function CarritoPage() {
         <p className="text-sm">Envío {formatMxn(shipping)}</p>
         <p className="text-sm">Total {formatMxn(total)}</p>
         <button disabled={busy || items.length === 0} className="w-full bg-[#009ee3] py-3 text-xs uppercase tracking-wider text-white disabled:opacity-50">
-          Pagar con Mercado Pago
+          {signedIn && !useNewPayment && paymentId ? "Pagar con tarjeta guardada" : "Pagar con Mercado Pago"}
         </button>
         {message ? <p className="text-sm text-[#6D5E52]">{message}</p> : null}
       </form>

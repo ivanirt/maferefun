@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { formatScheduled, modalityLabel } from "@/lib/consultas";
 import { formatMxn } from "@/lib/shipping";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { WalletManager } from "@/components/WalletManager";
 import { LogoutButton } from "@/components/LogoutButton";
 
 export const dynamic = "force-dynamic";
@@ -30,8 +32,17 @@ export default async function PanelPage() {
         <LogoutButton />
       </div>
       <p className="mt-2 text-[#6D5E52]">{user.name}</p>
+      {user.role === "admin" ? (
+        <p className="mt-3 text-sm">
+          <Link href="/config/productos">Ir a Configuración</Link>
+        </p>
+      ) : null}
 
-      <h2 className="mt-10 font-serif text-2xl">Pedidos</h2>
+      <div className="mt-10">
+        <WalletManager />
+      </div>
+
+      <h2 className="mt-10 font-serif text-2xl">Seguimiento de pedidos</h2>
       {orders.length === 0 ? (
         <p className="mt-2 text-sm text-[#6D5E52]">
           Aún no hay pedidos. <Link href="/">Ver catálogo</Link>
@@ -59,7 +70,8 @@ export default async function PanelPage() {
         <ul className="mt-4 space-y-3">
           {consultas.map((consulta) => (
             <li key={consulta.id} className="border border-[#EADBCE] bg-white p-4 text-sm">
-              {consulta.kind} · {consulta.status}
+              {consulta.kind} · {modalityLabel(consulta.modality) || "sin modalidad"} ·{" "}
+              {consulta.scheduledAt ? formatScheduled(consulta.scheduledAt) : "sin hora"} · {consulta.status}
             </li>
           ))}
         </ul>

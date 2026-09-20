@@ -5,6 +5,7 @@ export type SessionUser = {
   id: string;
   email: string;
   name: string;
+  role: string;
 };
 
 const COOKIE = "maferefun_session";
@@ -54,7 +55,7 @@ export async function getSession(): Promise<SessionUser | null> {
   try {
     const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as SessionUser & { exp: number };
     if (data.exp < Date.now()) return null;
-    return { id: data.id, email: data.email, name: data.name };
+    return { id: data.id, email: data.email, name: data.name, role: data.role || "devotee" };
   } catch {
     return null;
   }
