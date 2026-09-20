@@ -6,23 +6,32 @@ import type { CatalogProduct } from "@/components/CatalogHome";
 import { ProductPhotos } from "@/components/ProductPhotos";
 import { SalePrice } from "@/components/SalePrice";
 
-const CARD_WIDTH = 336;
-const IMAGE_HEIGHT = 246;
-const GAP = 16;
-const STEP = CARD_WIDTH + GAP;
+const CARD =
+  "w-full shrink-0 snap-start border border-[#EADBCE] bg-white sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]";
+const ARROW_BOX =
+  "absolute top-0 z-10 flex aspect-square w-full items-center sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]";
 
 export function ProductCarousel({ title, products }: { title: string; products: CatalogProduct[] }) {
   const scroller = useRef<HTMLDivElement>(null);
   const [added, setAdded] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
-  if (!products.length) return null;
+
+  function stepSize() {
+    const node = scroller.current;
+    const card = node?.querySelector("article");
+    if (!node || !card) return 0;
+    const styles = window.getComputedStyle(node);
+    const gap = Number.parseFloat(styles.columnGap || styles.gap) || 24;
+    return card.getBoundingClientRect().width + gap;
+  }
 
   function scroll(dir: number) {
     const node = scroller.current;
     if (!node) return;
+    const step = stepSize();
     const max = node.scrollWidth - node.clientWidth;
-    if (max <= 0) return;
-    const next = node.scrollLeft + dir * STEP;
+    if (max <= 0 || !step) return;
+    const next = node.scrollLeft + dir * step;
     if (next > max - 8) {
       node.scrollTo({ left: 0, behavior: "smooth" });
       return;
@@ -31,7 +40,7 @@ export function ProductCarousel({ title, products }: { title: string; products: 
       node.scrollTo({ left: max, behavior: "smooth" });
       return;
     }
-    node.scrollBy({ left: dir * STEP, behavior: "smooth" });
+    node.scrollBy({ left: dir * step, behavior: "smooth" });
   }
 
   useEffect(() => {
@@ -39,6 +48,8 @@ export function ProductCarousel({ title, products }: { title: string; products: 
     const timer = window.setInterval(() => scroll(1), 4000);
     return () => window.clearInterval(timer);
   }, [products.length, paused]);
+
+  if (!products.length) return null;
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-8">
@@ -48,46 +59,32 @@ export function ProductCarousel({ title, products }: { title: string; products: 
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        <button
-          type="button"
-          onClick={() => scroll(-1)}
-          className="absolute left-0 top-[123px] z-10 -translate-x-1/2 -translate-y-1/2 border border-[#EADBCE] bg-white/95 px-3 py-6 text-xl text-[#241B16] shadow-sm"
-          aria-label="Anterior"
-        >
-          ‹
+        <button type="button" onClick={() => scroll(-1)} className={`${ARROW_BOX} left-0 -translate-x-1/2`} aria-label="Anterior">
+          <span className="border border-[#EADBCE] bg-white/95 px-3 py-6 text-xl text-[#241B16] shadow-sm">‹</span>
         </button>
-        <button
-          type="button"
-          onClick={() => scroll(1)}
-          className="absolute right-0 top-[123px] z-10 translate-x-1/2 -translate-y-1/2 border border-[#EADBCE] bg-white/95 px-3 py-6 text-xl text-[#241B16] shadow-sm"
-          aria-label="Siguiente"
-        >
-          ›
+        <button type="button" onClick={() => scroll(1)} className={`${ARROW_BOX} right-0 translate-x-1/2 justify-end`} aria-label="Siguiente">
+          <span className="border border-[#EADBCE] bg-white/95 px-3 py-6 text-xl text-[#241B16] shadow-sm">›</span>
         </button>
         <div
           ref={scroller}
-          className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {products.map((product) => (
-            <article
-              key={product.id}
-              className="shrink-0 snap-start border border-[#EADBCE] bg-white"
-              style={{ width: CARD_WIDTH }}
-            >
+            <article key={product.id} className={CARD}>
               <ProductPhotos
                 paths={product.images.length ? product.images : [product.imagePath]}
                 alt={product.name}
-                sizes="336px"
-                className="relative bg-[#E8DFD0]"
-                style={{ height: IMAGE_HEIGHT }}
+                sizes="(max-width: 768px) 100vw, 33vw"
               />
-              <div className="space-y-2 p-3">
-                <p className="font-serif text-[#241B16]">{product.name}</p>
+              <div className="space-y-2 p-4">
+                <p className="text-xs uppercase tracking-wider text-[#6D5E52]">{product.orisha}</p>
+                <h2 className="font-serif text-xl text-[#241B16]">{product.name}</h2>
+                <p className="text-sm text-[#6D5E52]">{product.description}</p>
                 <SalePrice priceMxn={product.priceMxn} compareAtMxn={product.compareAtMxn} />
                 <button
                   type="button"
                   disabled={product.stock < 1}
-                  className="w-full bg-[#241B16] py-2 text-xs uppercase tracking-wider text-[#FAF7F2] disabled:opacity-40"
+                  className="w-full bg-[#241B16] py-2.5 text-xs uppercase tracking-wider text-[#FAF7F2] disabled:opacity-40"
                   onClick={() => {
                     addToCart({
                       key: `product:${product.id}`,
@@ -103,7 +100,7 @@ export function ProductCarousel({ title, products }: { title: string; products: 
                     setTimeout(() => setAdded(null), 1500);
                   }}
                 >
-                  {product.stock < 1 ? "Agotado" : added === product.id ? "Añadido" : "Añadir"}
+                  {product.stock < 1 ? "Sin inventario" : added === product.id ? "Añadido" : "Añadir al carrito"}
                 </button>
               </div>
             </article>

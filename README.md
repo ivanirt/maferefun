@@ -4,7 +4,7 @@ Botánica Maferefun: catálogo, carrito, tratados, consultas y cuenta.
 
 ## Stack
 
-Next.js 15, Postgres, Prisma. En producción: Hostinger VPS + Dokploy (`docker-compose.yml`).
+Next.js 15, Postgres 18, Prisma. En producción: Hostinger VPS + Dokploy (`docker-compose.yml`).
 
 ## Local
 
