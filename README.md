@@ -16,9 +16,7 @@ Next.js 15, Postgres, Prisma. En producción: Hostinger VPS + Dokploy (`docker-c
 
 Demo: `devoto@maferefun.com` / `maferefun`.
 
-Fotos del catálogo: [carpeta Botanica en Drive](https://drive.google.com/drive/folders/16S0q1RV9yKZaVDkV79d7KU395v6ADHvH?usp=sharing).
-
-Precios del seed (850 collares, 2150 mazos, MXN) son de arranque. Cámbialos cuando confirmes la lista.
+Fotos: [Drive](https://drive.google.com/drive/folders/16S0q1RV9yKZaVDkV79d7KU395v6ADHvH?usp=sharing). Precios: [hoja Productos](https://docs.google.com/spreadsheets/d/17iOJNxoqkm6fEF8AdPbiQywxpNobXbsSxitZBwvd00Y/edit?usp=sharing) (`PRECIO UNITARIO`).
 
 ## Dokploy
 
