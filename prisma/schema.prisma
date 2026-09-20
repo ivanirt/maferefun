@@ -33,6 +33,7 @@ model Devotee {
 
 model Order {
   id          String      @id @default(cuid())
+  code        String      @unique
   devoteeId   String?
   devotee     Devotee?    @relation(fields: [devoteeId], references: [id])
   email       String
@@ -44,7 +45,8 @@ model Order {
   shipping    Int
   consecration Int        @default(0)
   total       Int
-  status      String      @default("recibido")
+  status      String      @default("pendiente_pago")
+  paymentId   String?
   createdAt   DateTime    @default(now())
   items       OrderItem[]
 }

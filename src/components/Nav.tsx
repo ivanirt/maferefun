@@ -28,6 +28,7 @@ export function Navbar() {
           <Link href="/">Catálogo</Link>
           <Link href="/tratados">Tratados</Link>
           <Link href="/consultas">Consultas</Link>
+          <Link href="/pedido">Pedido</Link>
           <Link href="/panel">Mi cuenta</Link>
           <Link href="/carrito" className="text-[#241B16]">
             Carrito{count ? ` (${count})` : ""}

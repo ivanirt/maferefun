@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+import { MercadoPagoCheckout } from "@/components/MercadoPagoCheckout";
 import { CartItem, clearCart, readCart, setQuantity } from "@/lib/cart";
 import { CONSECRATION_FEE, FREE_SHIPPING_THRESHOLD, SHIPPING_FEE, formatMxn, getShippingCost } from "@/lib/shipping";
 
@@ -13,6 +15,9 @@ export default function CarritoPage() {
   const [whatsapp, setWhatsapp] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [orderCode, setOrderCode] = useState<string | null>(null);
+  const [paidTotal, setPaidTotal] = useState(0);
+  const [step, setStep] = useState<"form" | "pay" | "done">("form");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -51,11 +56,68 @@ export default function CarritoPage() {
         setMessage(data.error || "No se pudo confirmar el pedido.");
         return;
       }
-      clearCart();
-      setMessage("Pedido recibido. Te contactamos por WhatsApp.");
+      setOrderCode(data.code);
+      setPaidTotal(data.total ?? total);
+      setStep("pay");
     } finally {
       setBusy(false);
     }
+  }
+
+  async function onPaid(paymentId: string) {
+    if (!orderCode) return;
+    const res = await fetch("/api/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: orderCode, paymentId }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setMessage(data.error || "El pago no se pudo registrar.");
+      return;
+    }
+    clearCart();
+    setStep("done");
+  }
+
+  if (step === "done" && orderCode) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-12">
+        <h1 className="font-serif text-3xl">Pedido completado</h1>
+        <p className="mt-4 text-[#6D5E52]">
+          El pago simulado de Mercado Pago quedó aprobado. Anota este número para revisar cómo va tu pedido:
+        </p>
+        <p className="mt-6 border border-[#EADBCE] bg-white px-4 py-4 text-center font-mono text-2xl tracking-wider text-[#241B16]">
+          {orderCode}
+        </p>
+        <p className="mt-4 text-sm text-[#6D5E52]">Total pagado {formatMxn(paidTotal)}.</p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Link
+            href={`/pedido?code=${encodeURIComponent(orderCode)}`}
+            className="flex-1 bg-[#241B16] py-3 text-center text-xs uppercase tracking-wider text-[#FAF7F2]"
+          >
+            Ver estatus
+          </Link>
+          <Link href="/" className="flex-1 border border-[#EADBCE] py-3 text-center text-xs uppercase tracking-wider">
+            Seguir viendo
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "pay" && orderCode) {
+    return (
+      <div className="px-4 py-10">
+        <p className="mb-4 text-center text-sm text-[#6D5E52]">Pedido {orderCode}</p>
+        <MercadoPagoCheckout
+          amount={paidTotal}
+          email={email}
+          onPaid={onPaid}
+          onCancel={() => setStep("form")}
+        />
+      </div>
+    );
   }
 
   return (
@@ -91,7 +153,8 @@ export default function CarritoPage() {
       <form onSubmit={onSubmit} className="space-y-4 border border-[#EADBCE] bg-white p-6">
         <h2 className="font-serif text-2xl">Confirmar pedido</h2>
         <p className="text-sm text-[#6D5E52]">
-          Envío {formatMxn(SHIPPING_FEE)} · gratis desde {formatMxn(FREE_SHIPPING_THRESHOLD)}.
+          Envío {formatMxn(SHIPPING_FEE)} · gratis desde {formatMxn(FREE_SHIPPING_THRESHOLD)}. Pagas con Mercado Pago
+          (simulado).
         </p>
         <label className="block text-sm">
           Nombre
@@ -120,8 +183,8 @@ export default function CarritoPage() {
         <p className="text-sm">Subtotal {formatMxn(subtotal)}</p>
         <p className="text-sm">Envío {formatMxn(shipping)}</p>
         <p className="text-sm">Total {formatMxn(total)}</p>
-        <button disabled={busy || items.length === 0} className="w-full bg-[#241B16] py-3 text-xs uppercase tracking-wider text-[#FAF7F2] disabled:opacity-50">
-          Confirmar pedido
+        <button disabled={busy || items.length === 0} className="w-full bg-[#009ee3] py-3 text-xs uppercase tracking-wider text-white disabled:opacity-50">
+          Pagar con Mercado Pago
         </button>
         {message ? <p className="text-sm text-[#6D5E52]">{message}</p> : null}
       </form>

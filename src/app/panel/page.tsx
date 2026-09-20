@@ -41,7 +41,8 @@ export default async function PanelPage() {
           {orders.map((order) => (
             <li key={order.id} className="border border-[#EADBCE] bg-white p-4 text-sm">
               <p>
-                {order.status} · {formatMxn(order.total)} · {order.createdAt.toLocaleDateString("es-MX")}
+                {order.code} · {order.status} · {formatMxn(order.total)} ·{" "}
+                {order.createdAt.toLocaleDateString("es-MX")}
               </p>
               <p className="text-[#6D5E52]">{order.items.map((item) => item.product.name).join(", ")}</p>
             </li>
