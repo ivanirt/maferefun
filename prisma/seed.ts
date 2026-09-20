@@ -36,11 +36,27 @@ async function main() {
       update: product,
       create: { ...product, enabled: true },
     });
-    const images = await prisma.productImage.count({ where: { productId: saved.id } });
-    if (!images) {
-      await prisma.productImage.create({
-        data: { productId: saved.id, path: product.imagePath, sort: 0 },
+    const originalPath = `/products/originals/${product.imagePath.split("/").pop()}`;
+    const rows = await prisma.productImage.findMany({
+      where: { productId: saved.id },
+      orderBy: { sort: "asc" },
+    });
+    if (!rows.length) {
+      await prisma.productImage.createMany({
+        data: [
+          { productId: saved.id, path: product.imagePath, sort: 0 },
+          { productId: saved.id, path: originalPath, sort: 1 },
+        ],
       });
+    } else {
+      if (rows[0].path !== product.imagePath) {
+        await prisma.productImage.update({ where: { id: rows[0].id }, data: { path: product.imagePath } });
+      }
+      if (!rows.some((row) => row.path === originalPath)) {
+        await prisma.productImage.create({
+          data: { productId: saved.id, path: originalPath, sort: rows.length },
+        });
+      }
     }
   }
 

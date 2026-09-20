@@ -6,6 +6,7 @@ import { addToCart } from "@/lib/cart";
 import { formatMxn } from "@/lib/shipping";
 import { ProductCarousel } from "@/components/ProductCarousel";
 import { PostCarousel } from "@/components/PostCarousel";
+import { ProductPhotos } from "@/components/ProductPhotos";
 import { SalePrice } from "@/components/SalePrice";
 
 export type CatalogProduct = {
@@ -18,6 +19,7 @@ export type CatalogProduct = {
   priceMxn: number;
   compareAtMxn: number | null;
   imagePath: string;
+  images: string[];
   stock: number;
 };
 
@@ -86,7 +88,7 @@ export function CatalogHome({
     <div>
       <section className="relative h-[260px] overflow-hidden border-b border-[#EADBCE] sm:h-[300px]">
         <Image
-          src="/banner/banner-ifa-soperas-v6.png"
+          src="/banner/banner-ifa-soperas-v7.png"
           alt=""
           fill
           priority
@@ -195,15 +197,11 @@ export function CatalogHome({
           ))}
           {filteredProducts.map((product) => (
             <article key={product.id} className="border border-[#EADBCE] bg-white">
-              <div className="relative aspect-square bg-[#F3EEE6]">
-                <Image
-                  src={product.imagePath}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
-              </div>
+              <ProductPhotos
+                paths={product.images.length ? product.images : [product.imagePath]}
+                alt={product.name}
+                sizes="(max-width: 768px) 100vw, 33vw"
+              />
               <div className="space-y-2 p-4">
                 <p className="text-xs uppercase tracking-wider text-[#6D5E52]">{product.orisha}</p>
                 <h2 className="font-serif text-xl text-[#241B16]">{product.name}</h2>

@@ -28,6 +28,7 @@ export function toCatalogProduct(product: ProductRow): CatalogProduct {
     priceMxn: sale.priceMxn,
     compareAtMxn: sale.compareAtMxn,
     imagePath: product.images[0]?.path || product.imagePath,
+    images: product.images.length ? product.images.map((image) => image.path) : [product.imagePath].filter(Boolean),
     stock: product.stock,
   };
 }

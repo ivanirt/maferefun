@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { addToCart } from "@/lib/cart";
 import type { CatalogProduct } from "@/components/CatalogHome";
+import { ProductPhotos } from "@/components/ProductPhotos";
 import { SalePrice } from "@/components/SalePrice";
 
 const CARD_WIDTH = 336;
@@ -74,9 +74,13 @@ export function ProductCarousel({ title, products }: { title: string; products: 
               className="shrink-0 snap-start border border-[#EADBCE] bg-white"
               style={{ width: CARD_WIDTH }}
             >
-              <div className="relative bg-[#F3EEE6]" style={{ height: IMAGE_HEIGHT }}>
-                <Image src={product.imagePath} alt={product.name} fill className="object-cover" sizes="336px" />
-              </div>
+              <ProductPhotos
+                paths={product.images.length ? product.images : [product.imagePath]}
+                alt={product.name}
+                sizes="336px"
+                className="relative bg-[#E8DFD0]"
+                style={{ height: IMAGE_HEIGHT }}
+              />
               <div className="space-y-2 p-3">
                 <p className="font-serif text-[#241B16]">{product.name}</p>
                 <SalePrice priceMxn={product.priceMxn} compareAtMxn={product.compareAtMxn} />
