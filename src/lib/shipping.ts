@@ -8,9 +8,9 @@ export function getShippingCost(merchandiseTotal: number, itemCount: number): nu
 }
 
 export function formatMxn(amount: number): string {
-  return new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: "MXN",
-    maximumFractionDigits: 0,
+  const formatted = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
+  return `$${formatted}`;
 }
