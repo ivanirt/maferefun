@@ -28,7 +28,8 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src ./src
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 3000
-CMD ["sh", "-c", "i=0; until npx prisma migrate deploy; do i=$((i+1)); echo \"waiting for postgres ($i)\"; if [ \"$i\" -gt 30 ]; then exit 1; fi; sleep 2; done; npx tsx prisma/seed.ts; exec node server.js"]
+CMD ["sh", "-c", "i=0; until npx prisma migrate deploy; do i=$((i+1)); echo \"waiting for postgres ($i)\"; if [ \"$i\" -gt 30 ]; then exit 1; fi; sleep 2; done; npx tsx prisma/seed.ts && exec node server.js"]
