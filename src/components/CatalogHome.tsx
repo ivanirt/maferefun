@@ -88,7 +88,7 @@ export function CatalogHome({
     <div>
       <section className="relative h-[260px] overflow-hidden border-b border-[#EADBCE] sm:h-[300px]">
         <Image
-          src="/banner/banner-ifa-soperas-v8.png"
+          src="/banner/banner-ifa-soperas-v9.png"
           alt=""
           fill
           priority
