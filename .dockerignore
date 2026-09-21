@@ -4,6 +4,8 @@ node_modules
 Dockerfile
 .dockerignore
 *.md
+.drive_raw
+agent-transcripts
 .env
 .env.*
 !.env.example

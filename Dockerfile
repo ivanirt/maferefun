@@ -1,18 +1,19 @@
 FROM node:20-alpine AS deps
 RUN apk add --no-cache openssl libc6-compat
 WORKDIR /app
+ENV DATABASE_URL="postgresql://build:build@127.0.0.1:5432/build"
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 FROM node:20-alpine AS builder
 RUN apk add --no-cache openssl libc6-compat
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS=--max-old-space-size=1024
+ENV DATABASE_URL="postgresql://build:build@127.0.0.1:5432/build"
+ENV SESSION_SECRET="build-time-placeholder-not-used-in-runtime"
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_OPTIONS=--max-old-space-size=1536
-ENV DATABASE_URL="postgresql://maferefun:maferefun@127.0.0.1:5432/maferefun"
-ENV SESSION_SECRET="build-time-placeholder-not-used-in-runtime"
 RUN npx prisma generate
 RUN npx next build
 
