@@ -10,6 +10,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS=--max-old-space-size=1536
 ENV DATABASE_URL="postgresql://maferefun:maferefun@127.0.0.1:5432/maferefun"
 ENV SESSION_SECRET="build-time-placeholder-not-used-in-runtime"
 RUN npx prisma generate
@@ -22,14 +23,11 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
-RUN addgroup -g 1001 nodejs && adduser -S -u 1001 nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-RUN chown -R nextjs:nodejs /app
-USER nextjs
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx prisma/seed.ts && node server.js"]
+CMD ["sh", "-c", "i=0; until npx prisma migrate deploy; do i=$((i+1)); echo \"waiting for postgres ($i)\"; if [ \"$i\" -gt 30 ]; then exit 1; fi; sleep 2; done; npx tsx prisma/seed.ts; exec node server.js"]
