@@ -39,32 +39,28 @@ export function ProductCarousel({ title, products }: { title: string; products: 
   return (
     <section className="mx-auto max-w-6xl px-4 py-8">
       <h2 className="mb-4 font-serif text-2xl">{title}</h2>
-      <div
-        className="relative flex items-center gap-2"
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-      >
+      <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
         <button
           type="button"
           onClick={() => move(-1)}
-          className="z-20 shrink-0 border border-[#EADBCE] bg-white px-3 py-10 text-2xl text-[#241B16] shadow-sm"
+          className="absolute left-0 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 border border-[#EADBCE] bg-white px-3 py-10 text-2xl text-[#241B16] shadow-sm"
           aria-label="Anterior"
         >
           ‹
         </button>
-        <div className="grid min-w-0 flex-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {slides.map((product, index) => (
             <ProductCard
               key={`${product.id}-${start}-${index}`}
               product={product}
-              className="min-w-0 border border-[#EADBCE] bg-white"
+              className="border border-[#EADBCE] bg-white"
             />
           ))}
         </div>
         <button
           type="button"
           onClick={() => move(1)}
-          className="z-20 shrink-0 border border-[#EADBCE] bg-white px-3 py-10 text-2xl text-[#241B16] shadow-sm"
+          className="absolute right-0 top-1/2 z-20 translate-x-1/2 -translate-y-1/2 border border-[#EADBCE] bg-white px-3 py-10 text-2xl text-[#241B16] shadow-sm"
           aria-label="Siguiente"
         >
           ›
